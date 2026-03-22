@@ -2,7 +2,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import windows
-from lab1_proto import enframe, preemp, windowing
+from lab1_proto import enframe, preemp, windowing, powerSpectrum, logMelSpectrum
+from lab1_tools import trfbank
 
 def plot_frames_mesh(frames, title="Framed speech"):
     """Plot framed speech samples as a time-frame mesh."""
@@ -59,3 +60,38 @@ plt.show()
 
 # Plot windowed frames for comparison
 plot_frames_mesh(windowed_frames, "Windowed frames output")
+
+# Test logMelSpectrum function
+print("\n" + "=" * 50)
+print("Testing logMelSpectrum function")
+print("=" * 50)
+spec_frames = powerSpectrum(windowed_frames, 512)
+mspec_frames = logMelSpectrum(spec_frames, sr)
+print("ref mspec shape:", example['mspec'].shape)
+print("mspec shape:", mspec_frames.shape)
+print("exact match:", np.array_equal(mspec_frames, example['mspec']))
+print("max abs diff:", np.max(np.abs(mspec_frames - example['mspec'])))
+
+print("\nPlotting Mel filterbank shapes in linear frequency scale...")
+nfft = spec_frames.shape[1]
+fbank = trfbank(sr, nfft)
+freq_axis = np.linspace(0, sr / 2, nfft // 2 + 1)
+plt.figure(figsize=(10, 4))
+for filt in fbank:
+    plt.plot(freq_axis, filt[: nfft // 2 + 1], linewidth=1)
+plt.title("Mel Triangular Filterbank (Linear Frequency Scale)")
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Filter gain")
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()
+
+print("\nPlotting Mel filterbank log-spectrum outputs...")
+plt.figure()
+plt.pcolormesh(mspec_frames)
+plt.title("Mel Filterbank Log-Spectrum (mspec)")
+plt.xlabel("Mel filter index")
+plt.ylabel("Frame index")
+plt.colorbar(label="Log energy")
+plt.tight_layout()
+plt.show()

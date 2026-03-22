@@ -1,7 +1,7 @@
 # DT2119, Lab 1 Feature Extraction
 import numpy as np
 import matplotlib.pyplot as plt
-from lab1_tools import lifter
+from lab1_tools import lifter, trfbank
 from scipy.signal import windows
 
 # Function given by the exercise ----------------------------------
@@ -131,6 +131,11 @@ def logMelSpectrum(input, samplingrate):
     Note: use the trfbank function provided in lab1_tools.py to calculate the filterbank shapes and
           nmelfilters
     """
+    input = np.asarray(input)
+    nfft = input.shape[1]
+    fbank = trfbank(samplingrate, nfft)
+    mel_energies = np.dot(input, fbank.T)
+    return np.log(np.maximum(mel_energies, np.finfo(float).eps))
 
 def cepstrum(input, nceps):
     """
