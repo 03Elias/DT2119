@@ -2,6 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from lab1_tools import lifter
+from scipy.signal import windows
 
 # Function given by the exercise ----------------------------------
 
@@ -100,7 +101,9 @@ def windowing(input):
     Note (you can use the function hamming from scipy.signal, include the sym=0 option
     if you want to get the same results as in the example)
     """
-
+    input = np.asarray(input)
+    win = windows.hamming(input.shape[1], sym=False)
+    return input * win
 def powerSpectrum(input, nfft):
     """
     Calculates the power spectrum of the input signal, that is the square of the modulus of the FFT
@@ -159,31 +162,5 @@ def dtw(x, y, dist):
     Note that you only need to define the first output for this exercise.
     """
 
-def plot_frames_mesh(frames, title="Framed speech"):
-    """Plot framed speech samples as a time-frame mesh."""
-    plt.figure()
-    plt.pcolormesh(frames)
-    plt.title(title)
-    plt.xlabel("Sample index within frame")
-    plt.ylabel("Frame index")
-    plt.colorbar(label="Amplitude")
-    plt.tight_layout()
-    plt.show()
-
-# reference data from file
-example = np.load('lab1_example.npz', allow_pickle=True)['example'].item()
-
-
-sr = example['samplingrate']
-winlen = int(0.02 * sr)     
-winshift = int(0.01 * sr)   
-my_frames = enframe(example['samples'], winlen, winshift)
-print("ref :", example['frames'].shape)
-print("enframe:", my_frames.shape)
-print("exact match:", np.array_equal(my_frames, example['frames']))
-print("max abs diff:", np.max(np.abs(my_frames - example['frames'])))
-print("first 10 ref:", example['frames'][0, :10])
-print("first 10 enframe :", my_frames[0, :10])
-plot_frames_mesh(my_frames, "enframe output")
 
 
