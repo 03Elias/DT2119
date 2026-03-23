@@ -1,8 +1,11 @@
 # DT2119, Lab 1 Feature Extraction
 import numpy as np
 import matplotlib.pyplot as plt
+#from scipy import fft
 from lab1_tools import lifter, trfbank
-from scipy.signal import windows
+from scipy.signal import lfilter, windows
+from scipy.fftpack.realtransforms import dct
+from scipy.fftpack import fft
 
 # Function given by the exercise ----------------------------------
 
@@ -88,6 +91,9 @@ def preemp(input, p=0.97):
         output: array of pre-emphasised speech samples
     Note (you can use the function lfilter from scipy.signal)
     """
+    input = np.asarray(input)
+    return lfilter([1, -p], [1], input, axis=1)
+
 
 def windowing(input):
     """
@@ -104,6 +110,7 @@ def windowing(input):
     input = np.asarray(input)
     win = windows.hamming(input.shape[1], sym=False)
     return input * win
+
 def powerSpectrum(input, nfft):
     """
     Calculates the power spectrum of the input signal, that is the square of the modulus of the FFT
@@ -116,6 +123,9 @@ def powerSpectrum(input, nfft):
         array of power spectra [N x nfft]
     Note: you can use the function fft from scipy.fftpack
     """
+    input = np.asarray(input)
+    return np.abs(fft(input,nfft,axis=1))**2   
+
 
 def logMelSpectrum(input, samplingrate):
     """
@@ -149,6 +159,10 @@ def cepstrum(input, nceps):
         array of Cepstral coefficients [N x nceps]
     Note: you can use the function dct from scipy.fftpack.realtransforms
     """
+    input = np.asarray(input)
+    ceps = dct(input, axis=1)
+    return ceps[:, :nceps]
+
 
 def dtw(x, y, dist):
     """Dynamic Time Warping.
