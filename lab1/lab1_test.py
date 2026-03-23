@@ -2,8 +2,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import windows
-from lab1_proto import enframe, preemp, windowing, powerSpectrum, logMelSpectrum
-from lab1_tools import trfbank
+from scipy.cluster.hierarchy import linkage, dendrogram
+from scipy.spatial.distance import squareform
+from lab1_proto import enframe, preemp, windowing, powerSpectrum, logMelSpectrum, mfcc, dtw
+from lab1_tools import trfbank, tidigit2labels
 
 def plot_frames_mesh(frames, title="Framed speech"):
     """Plot framed speech samples as a time-frame mesh."""
@@ -93,5 +95,76 @@ plt.title("Mel Filterbank Log-Spectrum (mspec)")
 plt.xlabel("Mel filter index")
 plt.ylabel("Frame index")
 plt.colorbar(label="Log energy")
+plt.tight_layout()
+plt.show()
+
+# Comparing utterances with DTW
+print("\n" + "=" * 50)
+print("Comparing utterances with DTW")
+print("=" * 50)
+
+data = np.load('lab1_data.npz', allow_pickle=True)['data']
+n_utts = len(data)
+print(f"Loaded {n_utts} utterances")
+
+print("Computing MFCCs for all utterances...")
+mfcc_features = [
+    mfcc(utt['samples'], samplingrate=utt['samplingrate'])
+    for utt in data
+]
+
+print("Computing pairwise DTW distances (this may take a while)...")
+D = np.zeros((n_utts, n_utts), dtype=float)
+
+for i in range(n_utts):
+    for j in range(i + 1, n_utts):
+        d, _, _, _ = dtw(
+            mfcc_features[i],
+            mfcc_features[j],
+            lambda a, b: np.linalg.norm(a - b),
+        )
+        D[i, j] = d
+        D[j, i] = d  # symmetry
+
+print("\nPlotting DTW global distance matrix D...")
+plt.figure(figsize=(8, 6))
+plt.pcolormesh(D, shading='auto')  # added shading='auto' for cleaner plotting
+plt.title("Pairwise DTW Distance Matrix (44x44)")
+plt.xlabel("Utterance index")
+plt.ylabel("Utterance index")
+plt.colorbar(label="Global DTW distance")
+plt.tight_layout()
+plt.show()
+
+digits = np.array([utt['digit'] for utt in data])
+speakers = np.array([utt['speaker'] for utt in data])
+
+upper = np.triu(np.ones((n_utts, n_utts), dtype=bool), 1)
+same_digit = digits[:, None] == digits[None, :]
+same_speaker = speakers[:, None] == speakers[None, :]
+
+within_digit = D[upper & same_digit]
+across_digits = D[upper & (~same_digit)]
+within_digit_across_speakers = D[upper & same_digit & (~same_speaker)]
+
+print("\nDistance comparison summary")
+print("mean(within same digit):", np.mean(within_digit))
+print("mean(across different digits):", np.mean(across_digits))
+print("mean(within same digit, across speakers):", np.mean(within_digit_across_speakers))
+
+if np.median(within_digit) < np.median(across_digits):
+    print("Observation: Distances tend to be smaller within the same digit than across digits.")
+else:
+    print("Observation: Separation between same-digit and different-digit distances is weak.")
+
+print("\nRunning hierarchical clustering (complete linkage)...")
+labels = tidigit2labels(data)
+Z = linkage(squareform(D, checks=False), method='complete')
+
+plt.figure(figsize=(14, 6))
+dendrogram(Z, labels=labels, leaf_rotation=90, leaf_font_size=8)
+plt.title("Hierarchical Clustering of Utterances (DTW, complete linkage)")
+plt.xlabel("Utterance")
+plt.ylabel("Cluster distance")
 plt.tight_layout()
 plt.show()

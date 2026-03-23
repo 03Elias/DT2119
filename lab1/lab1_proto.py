@@ -166,6 +166,46 @@ def dtw(x, y, dist):
 
     Note that you only need to define the first output for this exercise.
     """
+    x = np.asarray(x)
+    y = np.asarray(y)
+    LD = np.zeros((len(x), len(y)), dtype=float)
+    for i in range(len(x)):
+        for j in range(len(y)):
+            LD[i, j] = dist(x[i], y[j])
+
+    if LD.ndim != 2 or LD.shape[0] == 0 or LD.shape[1] == 0:
+        raise ValueError("Local-distance matrix must be 2D and non-empty.")
+
+    n, m = LD.shape
+    AD = np.full((n, m), np.inf, dtype=float)
+    AD[0, 0] = LD[0, 0]
+
+    for i in range(n):
+        for j in range(m):
+            if i == 0 and j == 0:
+                continue
+            AD[i, j] = LD[i, j] + min(
+                AD[i - 1, j] if i > 0 else np.inf,
+                AD[i, j - 1] if j > 0 else np.inf,
+                AD[i - 1, j - 1] if (i > 0 and j > 0) else np.inf,
+            )
+
+    i, j = n - 1, m - 1
+    path = [(i, j)]
+    while i > 0 or j > 0:
+        candidates = []
+        if i > 0 and j > 0:
+            candidates.append((AD[i - 1, j - 1], i - 1, j - 1))
+        if i > 0:
+            candidates.append((AD[i - 1, j], i - 1, j))
+        if j > 0:
+            candidates.append((AD[i, j - 1], i, j - 1))
+        _, i, j = min(candidates, key=lambda t: t[0])
+        path.append((i, j))
+    path.reverse()
+
+    d = AD[-1, -1] / (n + m)
+    return d, LD, AD, path
 
 
 
