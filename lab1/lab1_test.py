@@ -2,7 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import windows
-from lab1_proto import enframe, preemp, windowing, powerSpectrum, logMelSpectrum
+from lab1_proto import enframe, preemp, windowing, powerSpectrum, logMelSpectrum, cepstrum
 from lab1_tools import trfbank
 
 def plot_frames_mesh(frames, title="Framed speech"):
@@ -95,3 +95,35 @@ plt.ylabel("Frame index")
 plt.colorbar(label="Log energy")
 plt.tight_layout()
 plt.show()
+
+
+
+
+#"********************************************************"
+
+print("=== TEST PREEMP ===")
+my_preemph = preemp(example["frames"], 0.97)
+print("shape:", my_preemph.shape)
+print("correct shape:", example["preemph"].shape)
+print("allclose:", np.allclose(my_preemph, example["preemph"]))
+print("max diff:", np.max(np.abs(my_preemph - example["preemph"])))
+
+
+
+
+print("=== TEST POWERSPECTRUM ===")
+my_spec = powerSpectrum(example["windowed"], 512)
+print("shape:", my_spec.shape)
+print("correct shape:", example["spec"].shape)
+print("allclose:", np.allclose(my_spec, example["spec"]))
+print("max diff:", np.max(np.abs(my_spec - example["spec"])))
+
+
+
+
+print("=== TEST CEPSTRUM ===")
+my_mfcc = cepstrum(example["mspec"], 13)
+print("shape:", my_mfcc.shape)
+print("correct shape:", example["mfcc"].shape)
+print("allclose:", np.allclose(my_mfcc, example["mfcc"]))
+print("max diff:", np.max(np.abs(my_mfcc - example["mfcc"])))
