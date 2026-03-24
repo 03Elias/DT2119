@@ -2,8 +2,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import windows
-from lab1_proto import enframe, preemp, windowing, powerSpectrum, logMelSpectrum, cepstrum
-from lab1_tools import trfbank
+from lab1_proto import enframe, preemp, windowing, powerSpectrum, logMelSpectrum, cepstrum, mfcc
+from lab1_tools import trfbank, lifter
 
 def plot_frames_mesh(frames, title="Framed speech"):
     """Plot framed speech samples as a time-frame mesh."""
@@ -96,8 +96,32 @@ plt.colorbar(label="Log energy")
 plt.tight_layout()
 plt.show()
 
+# Test logMelSpectrum function (continuation)
+print("\n" + "=" * 50)
+print("Testing power spectrum, cepstrum, and liftered MFCC")
+print("=" * 50)
 
+print("\nPlotting power spectrum...")
+plt.figure()
+plt.pcolormesh(spec_frames)
+plt.title("Power Spectrum (spec)")
+plt.xlabel("FFT bin / frequency-bin index")
+plt.ylabel("Frame index")
+plt.colorbar(label="Power")
+plt.tight_layout()
+plt.show()
 
+# Test cepstrum and generate plot
+my_ceps = cepstrum(mspec_frames, 13)
+print("\nPlotting cepstrum / MFCC coefficients...")
+plt.figure()
+plt.pcolormesh(my_ceps)
+plt.title("MFCC / Cepstrum Coefficients (mfcc)")
+plt.xlabel("Coefficient index")
+plt.ylabel("Frame index")
+plt.colorbar(label="Coefficient value")
+plt.tight_layout()
+plt.show()
 
 #"********************************************************"
 
@@ -127,3 +151,21 @@ print("shape:", my_mfcc.shape)
 print("correct shape:", example["mfcc"].shape)
 print("allclose:", np.allclose(my_mfcc, example["mfcc"]))
 print("max diff:", np.max(np.abs(my_mfcc - example["mfcc"])))
+
+
+print("\n=== TEST FULL MFCC PIPELINE (LIFTERED) ===")
+my_lmfcc = mfcc(example["samples"], winlen=400, winshift=200, preempcoeff=0.97, nfft=512, nceps=13, samplingrate=sr, liftercoeff=22)
+print("shape:", my_lmfcc.shape)
+print("correct shape:", example["lmfcc"].shape)
+print("allclose:", np.allclose(my_lmfcc, example["lmfcc"]))
+print("max diff:", np.max(np.abs(my_lmfcc - example["lmfcc"])))
+
+print("\nPlotting liftered MFCC...")
+plt.figure()
+plt.pcolormesh(my_lmfcc)
+plt.title("Liftered MFCC (lmfcc)")
+plt.xlabel("Coefficient index")
+plt.ylabel("Frame index")
+plt.colorbar(label="Coefficient value")
+plt.tight_layout()
+plt.show()
