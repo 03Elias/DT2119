@@ -1,11 +1,25 @@
 # DT2119, Lab 1 Feature Extraction - Testing and Visualization
 import numpy as np
 import matplotlib.pyplot as plt
+from pathlib import Path
 from scipy.signal import windows
 from lab1_proto import enframe, preemp, windowing, powerSpectrum, logMelSpectrum, cepstrum, mfcc
 from lab1_tools import trfbank, lifter
 
-def plot_frames_mesh(frames, title="Framed speech"):
+
+def prepare_plot_dir(folder_name):
+    plot_dir = Path(__file__).resolve().parent / folder_name
+    plot_dir.mkdir(parents=True, exist_ok=True)
+    for old_png in plot_dir.glob("*.png"):
+        old_png.unlink()
+    return plot_dir
+
+
+def save_and_show(plot_dir, filename):
+    plt.savefig(plot_dir / filename, dpi=150)
+    plt.show()
+
+def plot_frames_mesh(frames, plot_dir, filename, title="Framed speech"):
     """Plot framed speech samples as a time-frame mesh."""
     plt.figure()
     plt.pcolormesh(frames)
@@ -14,7 +28,10 @@ def plot_frames_mesh(frames, title="Framed speech"):
     plt.ylabel("Frame index")
     plt.colorbar(label="Amplitude")
     plt.tight_layout()
-    plt.show()
+    save_and_show(plot_dir, filename)
+
+
+plot_dir = prepare_plot_dir("proto_plots")
 
 # Load reference data from file
 example = np.load('lab1_example.npz', allow_pickle=True)['example'].item()
@@ -33,7 +50,7 @@ print("exact match:", np.array_equal(my_frames, example['frames']))
 print("max abs diff:", np.max(np.abs(my_frames - example['frames'])))
 print("first 10 ref:", example['frames'][0, :10])
 print("first 10 enframe:", my_frames[0, :10])
-plot_frames_mesh(my_frames, "enframe output")
+plot_frames_mesh(my_frames, plot_dir, "01_enframe_output.png", "enframe output")
 
 # Test windowing function
 print("\n" + "=" * 50)
@@ -56,10 +73,10 @@ plt.xlabel("Sample index within frame", fontsize=12)
 plt.ylabel("Window amplitude", fontsize=12)
 plt.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.show()
+save_and_show(plot_dir, "02_hamming_window_shape.png")
 
 # Plot windowed frames for comparison
-plot_frames_mesh(windowed_frames, "Windowed frames output")
+plot_frames_mesh(windowed_frames, plot_dir, "03_windowed_frames_output.png", "Windowed frames output")
 
 # Test logMelSpectrum function
 print("\n" + "=" * 50)
@@ -84,7 +101,7 @@ plt.xlabel("Frequency (Hz)")
 plt.ylabel("Filter gain")
 plt.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.show()
+save_and_show(plot_dir, "04_mel_triangular_filterbank.png")
 
 print("\nPlotting Mel filterbank log-spectrum outputs...")
 plt.figure()
@@ -94,7 +111,7 @@ plt.xlabel("Mel filter index")
 plt.ylabel("Frame index")
 plt.colorbar(label="Log energy")
 plt.tight_layout()
-plt.show()
+save_and_show(plot_dir, "05_mel_filterbank_log_spectrum.png")
 
 # Test logMelSpectrum function (continuation)
 print("\n" + "=" * 50)
@@ -109,7 +126,7 @@ plt.xlabel("FFT bin / frequency-bin index")
 plt.ylabel("Frame index")
 plt.colorbar(label="Power")
 plt.tight_layout()
-plt.show()
+save_and_show(plot_dir, "06_power_spectrum.png")
 
 # Test cepstrum and generate plot
 my_ceps = cepstrum(mspec_frames, 13)
@@ -121,7 +138,7 @@ plt.xlabel("Coefficient index")
 plt.ylabel("Frame index")
 plt.colorbar(label="Coefficient value")
 plt.tight_layout()
-plt.show()
+save_and_show(plot_dir, "07_mfcc_cepstrum_coefficients.png")
 
 #"********************************************************"
 
@@ -168,4 +185,6 @@ plt.xlabel("Coefficient index")
 plt.ylabel("Frame index")
 plt.colorbar(label="Coefficient value")
 plt.tight_layout()
-plt.show()
+save_and_show(plot_dir, "08_liftered_mfcc.png")
+
+print(f"\nSaved plots to: {plot_dir}")
