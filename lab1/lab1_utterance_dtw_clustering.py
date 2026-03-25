@@ -199,17 +199,7 @@ def hierarchical_clustering_dendrogram(D, data, save_path=None):
     if save_path is not None:
         plt.savefig(save_path, dpi=150)
     
-    # Print interpretation guide
-    print("\n=== Dendrogram interpretation ===")
-    print("Structure to observe:")
-    print("  1. Do clusters group utterances of the same digit together?")
-    print("  2. Are different speakers (ac vs aw) separated or mixed within digit clusters?")
-    print("  3. Are repetitions (a vs b) grouped or separated?")
-    print("  4. Do acoustically similar digits (e.g., 'one'/'seven', 'two'/'to') cluster nearby?")
-    print("\nCommon patterns in speech data:")
-    print("  - Within-digit clusters: utterances of same word tend to group (if well-separated)")
-    print("  - Cross-speaker variability: speaker differences can be as large as digit differences")
-    print("  - Phonetic similarity: digit pairs with similar phones may be nearby")
+ 
 
 
 def main(show_plots=True):
