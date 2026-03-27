@@ -156,7 +156,7 @@ print("=== TEST POWERSPECTRUM ===")
 my_spec = powerSpectrum(example["windowed"], 512)
 print("shape:", my_spec.shape)
 print("correct shape:", example["spec"].shape)
-print("allclose:", np.allclose(my_spec, example["spec"]))
+print("exact match:", np.array_equal(my_spec, example["spec"]))
 print("max diff:", np.max(np.abs(my_spec - example["spec"])))
 
 
@@ -166,7 +166,7 @@ print("=== TEST CEPSTRUM ===")
 my_mfcc = cepstrum(example["mspec"], 13)
 print("shape:", my_mfcc.shape)
 print("correct shape:", example["mfcc"].shape)
-print("allclose:", np.allclose(my_mfcc, example["mfcc"]))
+print("exact match:", np.array_equal(my_mfcc, example["mfcc"]))
 print("max diff:", np.max(np.abs(my_mfcc - example["mfcc"])))
 
 
@@ -174,7 +174,7 @@ print("\n=== TEST FULL MFCC PIPELINE (LIFTERED) ===")
 my_lmfcc = mfcc(example["samples"], winlen=400, winshift=200, preempcoeff=0.97, nfft=512, nceps=13, samplingrate=sr, liftercoeff=22)
 print("shape:", my_lmfcc.shape)
 print("correct shape:", example["lmfcc"].shape)
-print("allclose:", np.allclose(my_lmfcc, example["lmfcc"]))
+print("exact match:", np.array_equal(my_lmfcc, example["lmfcc"]))
 print("max diff:", np.max(np.abs(my_lmfcc - example["lmfcc"])))
 
 print("\nPlotting liftered MFCC...")
