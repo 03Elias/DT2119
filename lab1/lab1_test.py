@@ -146,7 +146,7 @@ print("=== TEST PREEMP ===")
 my_preemph = preemp(example["frames"], 0.97)
 print("shape:", my_preemph.shape)
 print("correct shape:", example["preemph"].shape)
-print("allclose:", np.allclose(my_preemph, example["preemph"]))
+print("exact match:", np.array_equal(my_preemph, example["preemph"]))
 print("max diff:", np.max(np.abs(my_preemph - example["preemph"])))
 
 
