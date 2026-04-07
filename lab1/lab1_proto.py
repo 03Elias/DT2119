@@ -78,7 +78,7 @@ def enframe(samples, winlen, winshift):
     indices = starts[:, None] + np.arange(winlen)[None, :]
     return samples[indices]
     
-def preemp(input, p=0.97):
+def preemp(input, p=0.97): 
     """
     Pre-emphasis filter.
 
@@ -145,7 +145,7 @@ def logMelSpectrum(input, samplingrate):
     nfft = input.shape[1]
     fbank = trfbank(samplingrate, nfft)
     mel_energies = np.dot(input, fbank.T)
-    return np.log(np.maximum(mel_energies, np.finfo(float).eps))
+    return np.log(np.maximum(mel_energies, np.finfo(float).eps))    
 
 def cepstrum(input, nceps):
     """

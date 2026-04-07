@@ -86,11 +86,11 @@ def summarize_correlation(name, corr):
     print(f"  max  |off-diagonal correlation|: {max_abs:.4f}")
 
     if mean_abs > 0.2:
-        print("  interpretation: features are clearly correlated; diagonal covariance is a rough approximation.")
+        print("  interpretation: features are clearly correlated where diagonal covariance is a rough approximation.")
     elif mean_abs > 0.1:
-        print("  interpretation: moderate correlation exists; diagonal covariance may lose information.")
+        print("  interpretation: moderate correlation exists where diagonal covariance may lose information.")
     else:
-        print("  interpretation: weak average correlation; diagonal covariance is more defensible.")
+        print("  interpretation: weak average correlation where diagonal covariance is more defensible.")
 
 
 def fit_gmms(features, n_components_list, random_state=0):

@@ -164,11 +164,11 @@ def analyze_distance_structure(D, data):
     separation_ratio = float(np.mean(across_digit_dists)) / float(np.mean(within_digit_dists))
     print(f"\n  Separation ratio (across / within): {separation_ratio:.4f}")
     if separation_ratio > 1.5:
-        print("  interpretation: strong separation; digits are well-separated even between speakers.")
+        print("  interpretation: strong separation meaning digits are well-separated even between speakers.")
     elif separation_ratio > 1.2:
-        print("  interpretation: moderate separation; digit classes are distinguishable but with overlap.")
+        print("  interpretation: moderate separation meaning digit classes are distinguishable but with overlap.")
     else:
-        print("  interpretation: weak separation; significant overlap between digit classes.")
+        print("  interpretation: weak separation meaning significant overlap between digit classes.")
 
 
 def hierarchical_clustering_dendrogram(D, data, save_path=None):
