@@ -102,5 +102,27 @@ print("shape log_emlik:", log_emlik.shape)
 print("weights:", weights)
 print()
 
+# ===== TEST backward =====
+log_beta = backward(
+    example['obsloglik'],
+    np.log(wordHMMs['o']['startprob'][:-1]),
+    np.log(wordHMMs['o']['transmat'][:-1,:-1])
+)
+
+print("backward match:", np.allclose(log_beta, example['logbeta']))
+
+# ===== TEST gamma =====
+log_gamma = statePosteriors(example['logalpha'], log_beta)
+
+print("gamma match:", np.allclose(log_gamma, example['loggamma']))
+
+gamma = np.exp(log_gamma)
+print("gamma rows sum to 1:", np.allclose(np.sum(gamma, axis=1), 1.0))
+
+
 # ===== PLOT CURRENT RESULTS =====
-plot_example_results(example, obsloglik=obsloglik)
+plot_example_results(example,
+                     obsloglik=obsloglik, 
+                     log_beta=log_beta,
+                     log_gamma=log_gamma
+                     )

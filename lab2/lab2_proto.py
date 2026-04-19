@@ -129,7 +129,22 @@ def backward(log_emlik, log_startprob, log_transmat):
     Output:
         backward_prob: NxM array of backward log probabilities for each of the M states in the model
     """
-    
+    n_frames, n_states = log_emlik.shape
+    log_beta = np.zeros((n_frames, n_states))
+
+    # Initialization:
+    # log beta_{N-1}(i) = 0
+    log_beta[-1, :] = 0.0
+
+    # Recursion backward in time
+    for n in range(n_frames - 2, -1, -1):
+        for i in range(n_states):
+            log_beta[n, i] = logsumexp(
+                log_transmat[i, :] + log_emlik[n + 1, :] + log_beta[n + 1, :],
+                axis=0
+            )
+
+    return log_beta
     
     
 #Elias
@@ -159,6 +174,11 @@ def statePosteriors(log_alpha, log_beta):
     Output:
         log_gamma: NxM array of gamma probabilities for each of the M states in the model
     """
+    loglik = logsumexp(log_alpha[-1, :], axis=0)
+    log_gamma = log_alpha + log_beta - loglik
+    return log_gamma
+    
+    
 #Elias
 def updateMeanAndVar(X, log_gamma, varianceFloor=5.0):
     """ Update Gaussian parameters with diagonal covariance
