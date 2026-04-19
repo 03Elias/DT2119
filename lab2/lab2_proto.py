@@ -117,6 +117,22 @@ def forward(log_emlik, log_startprob, log_transmat):
     Output:
         forward_prob: NxM array of forward log probabilities for each of the M states in the model
     """
+    N, M = log_emlik.shape
+    forward_prob = np.full((N, M), -np.inf)
+
+    # Keep only emitting-state priors/transitions if a non-emitting final state is present.
+    startprob = log_startprob[:M]
+    transmat = log_transmat[:M, :M]
+
+    # Initialization: alpha_0(j) = pi_j * b_j(x_0)
+    forward_prob[0, :] = startprob + log_emlik[0, :]
+
+    # Recursion: alpha_n(j) = b_j(x_n) * sum_i alpha_{n-1}(i) * a_ij
+    for n in range(1, N):
+        for j in range(M):
+            forward_prob[n, j] = logsumexp(forward_prob[n - 1, :] + transmat[:, j]) + log_emlik[n, j]
+
+    return forward_prob
 #Elmira
 def backward(log_emlik, log_startprob, log_transmat):
     """Backward (beta) probabilities in log domain.
@@ -162,6 +178,41 @@ def viterbi(log_emlik, log_startprob, log_transmat, forceFinalState=True):
         viterbi_loglik: log likelihood of the best path
         viterbi_path: best path
     """
+    n_frames, n_states = log_emlik.shape
+
+    # Keep only emitting-state priors/transitions if a non-emitting final state is present.
+    startprob = log_startprob[:n_states]
+    transmat = log_transmat[:n_states, :n_states]
+
+    log_v = np.full((n_frames, n_states), -np.inf)
+    backptr = np.zeros((n_frames, n_states), dtype=int)
+
+    # Initialization
+    log_v[0, :] = startprob + log_emlik[0, :]
+
+    # Recursion
+    for n in range(1, n_frames):
+        for j in range(n_states):
+            candidates = log_v[n - 1, :] + transmat[:, j]
+            best_prev = np.argmax(candidates)
+            backptr[n, j] = best_prev
+            log_v[n, j] = candidates[best_prev] + log_emlik[n, j]
+
+    # Termination
+    if forceFinalState:
+        last_state = n_states - 1
+    else:
+        last_state = np.argmax(log_v[-1, :])
+    viterbi_loglik = log_v[-1, last_state]
+
+    # Backtracking
+    viterbi_path = np.zeros(n_frames, dtype=int)
+    viterbi_path[-1] = last_state
+    for n in range(n_frames - 1, 0, -1):
+        viterbi_path[n - 1] = backptr[n, viterbi_path[n]]
+
+    return viterbi_loglik, viterbi_path
+
 #Elmira
 def statePosteriors(log_alpha, log_beta):
     """State posterior (gamma) probabilities in log domain.
@@ -195,3 +246,24 @@ def updateMeanAndVar(X, log_gamma, varianceFloor=5.0):
          means: MxD mean vectors for each state
          covars: MxD covariance (variance) vectors for each state
     """
+    # Convert posteriors from log domain to linear domain.
+    gamma = np.exp(log_gamma)
+
+    # Effective frame count per state.
+    gamma_sum = np.sum(gamma, axis=0)
+
+    # Avoid division by zero for states with negligible occupancy.
+    gamma_sum_safe = np.maximum(gamma_sum, np.finfo(float).eps)
+
+    # Weighted mean for each state.
+    means = (gamma.T @ X) / gamma_sum_safe[:, np.newaxis]
+
+    # Weighted diagonal variance for each state.
+    centered = X[:, np.newaxis, :] - means[np.newaxis, :, :]
+    weighted_sq = gamma[:, :, np.newaxis] * (centered ** 2)
+    covars = np.sum(weighted_sq, axis=0) / gamma_sum_safe[:, np.newaxis]
+
+    # Apply minimum variance to avoid degenerate Gaussians.
+    covars = np.maximum(covars, varianceFloor)
+
+    return means, covars
