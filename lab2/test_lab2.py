@@ -34,7 +34,7 @@ def plot_example_results(example, obsloglik=None, log_alpha=None, log_beta=None,
         plt.ylabel(ylabel)
         plt.xlabel("time frame")
 
-        if (("logalpha" in title) or ("loggamma" in title)) and (viterbi_path is not None):
+        if ("loggamma" in title) and (viterbi_path is not None):
             plt.plot(viterbi_path, color='red', linewidth=1.5)
 
         plt.tight_layout()
