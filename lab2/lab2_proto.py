@@ -1,5 +1,5 @@
 import numpy as np
-from tools2 import *
+from lab2_tools import *
 
 # already implemented
 def concatTwoHMMs(hmm1, hmm2):
@@ -101,6 +101,10 @@ def gmmloglik(log_emlik, weights):
     Output:
         gmmloglik: scalar, log likelihood of data given the GMM model.
     """
+    log_weights = np.log(weights)
+    weighted_log_emlik = log_emlik + log_weights
+    return np.sum(logsumexp(weighted_log_emlik, axis=1))
+    
 #Elias
 def forward(log_emlik, log_startprob, log_transmat):
     """Forward (alpha) probabilities in log domain.
@@ -125,6 +129,9 @@ def backward(log_emlik, log_startprob, log_transmat):
     Output:
         backward_prob: NxM array of backward log probabilities for each of the M states in the model
     """
+    
+    
+    
 #Elias
 def viterbi(log_emlik, log_startprob, log_transmat, forceFinalState=True):
     """Viterbi path.
