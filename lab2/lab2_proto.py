@@ -88,7 +88,7 @@ def concatHMMs(hmmmodels, namelist):
         concat = concatTwoHMMs(concat, hmmmodels[namelist[idx]])
     return concat
 
-
+#Elmira
 def gmmloglik(log_emlik, weights):
     """Log Likelihood for a GMM model based on Multivariate Normal Distribution.
 
@@ -101,7 +101,7 @@ def gmmloglik(log_emlik, weights):
     Output:
         gmmloglik: scalar, log likelihood of data given the GMM model.
     """
-
+#Elias
 def forward(log_emlik, log_startprob, log_transmat):
     """Forward (alpha) probabilities in log domain.
 
@@ -113,7 +113,7 @@ def forward(log_emlik, log_startprob, log_transmat):
     Output:
         forward_prob: NxM array of forward log probabilities for each of the M states in the model
     """
-
+#Elmira
 def backward(log_emlik, log_startprob, log_transmat):
     """Backward (beta) probabilities in log domain.
 
@@ -125,7 +125,7 @@ def backward(log_emlik, log_startprob, log_transmat):
     Output:
         backward_prob: NxM array of backward log probabilities for each of the M states in the model
     """
-
+#Elias
 def viterbi(log_emlik, log_startprob, log_transmat, forceFinalState=True):
     """Viterbi path.
 
@@ -140,7 +140,7 @@ def viterbi(log_emlik, log_startprob, log_transmat, forceFinalState=True):
         viterbi_loglik: log likelihood of the best path
         viterbi_path: best path
     """
-
+#Elmira
 def statePosteriors(log_alpha, log_beta):
     """State posterior (gamma) probabilities in log domain.
 
@@ -152,7 +152,7 @@ def statePosteriors(log_alpha, log_beta):
     Output:
         log_gamma: NxM array of gamma probabilities for each of the M states in the model
     """
-
+#Elias
 def updateMeanAndVar(X, log_gamma, varianceFloor=5.0):
     """ Update Gaussian parameters with diagonal covariance
 
