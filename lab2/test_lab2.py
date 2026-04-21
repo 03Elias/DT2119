@@ -34,9 +34,6 @@ def plot_example_results(example, obsloglik=None, log_alpha=None, log_beta=None,
         plt.ylabel(ylabel)
         plt.xlabel("time frame")
 
-        if ("loggamma" in title) and (viterbi_path is not None):
-            plt.plot(viterbi_path, color='red', linewidth=1.5)
-
         plt.tight_layout()
         safe_name = title.lower().replace(':', '').replace(' ', '_')
         plt.savefig(os.path.join(output_dir, f"{idx:02d}_{safe_name}.png"), dpi=150)
@@ -44,6 +41,22 @@ def plot_example_results(example, obsloglik=None, log_alpha=None, log_beta=None,
             plt.show()
         else:
             plt.close()
+
+        # Save an additional alpha plot with Viterbi overlay while preserving
+        # the original alpha-only image.
+        if ("logalpha" in title) and (viterbi_path is not None):
+            plt.figure(figsize=(10, 3))
+            plt.imshow(mat.T, aspect='auto', origin='lower')
+            plt.plot(viterbi_path, color='red', linewidth=1.5)
+            plt.title(f"{title} + Viterbi path", fontsize=10)
+            plt.ylabel(ylabel)
+            plt.xlabel("time frame")
+            plt.tight_layout()
+            plt.savefig(os.path.join(output_dir, f"{idx:02d}_{safe_name}_with_viterbi_overlay.png"), dpi=150)
+            if show_plots:
+                plt.show()
+            else:
+                plt.close()
         
         
 # load data
