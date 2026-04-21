@@ -157,13 +157,20 @@ print("weights:", weights)
 print()
 
 # ===== TEST backward =====
+log_startprob_o = np.log(wordHMMs['o']['startprob'][:-1])
+log_transmat_o = np.log(wordHMMs['o']['transmat'][:-1,:-1])
 log_beta = backward(
     example['obsloglik'],
-    np.log(wordHMMs['o']['startprob'][:-1]),
-    np.log(wordHMMs['o']['transmat'][:-1,:-1])
+    log_startprob_o,
+    log_transmat_o
 )
 
 print("backward match:", np.allclose(log_beta, example['logbeta']))
+backward_loglik = logsumexp(log_startprob_o + example['obsloglik'][0, :] + log_beta[0, :])
+print("backward loglik match:", np.allclose(backward_loglik, example['loglik']))
+print("backward loglik:", backward_loglik)
+print("example loglik:", example['loglik'])
+print()
 
 # ===== TEST gamma =====
 log_gamma = statePosteriors(example['logalpha'], log_beta)
