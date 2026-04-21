@@ -326,6 +326,10 @@ def evaluate_end_to_end_pipeline(data_items, phone_hmms, isolated_map):
     word_hmms = {digit: concatHMMs(phone_hmms, isolated_map[digit]) for digit in isolated_map.keys()}
     candidate_digits = list(word_hmms.keys())
 
+    # Track CPU time spent specifically in the per-digit Viterbi scoring calls.
+    forward_cpu_time_total = 0.0
+    viterbi_cpu_time_total = 0.0
+
     forward_preds = []
     viterbi_preds = []
     true_digits = []
@@ -346,11 +350,17 @@ def evaluate_end_to_end_pipeline(data_items, phone_hmms, isolated_map):
             log_trans = np.log(hmm['transmat'][:-1, :-1])
 
             # Forward score: log P(X|theta)
+            forward_cpu_start = os.times().user + os.times().system
             alpha = forward(obsloglik_utt, log_start, log_trans)
             ll_forward = logsumexp(alpha[-1, :])
+            forward_cpu_end = os.times().user + os.times().system
+            forward_cpu_time_total += (forward_cpu_end - forward_cpu_start)
 
             # Viterbi score: log P(X, S_best|theta)
+            viterbi_cpu_start = os.times().user + os.times().system
             ll_viterbi, _ = viterbi(obsloglik_utt, log_start, log_trans, forceFinalState=True)
+            viterbi_cpu_end = os.times().user + os.times().system
+            viterbi_cpu_time_total += (viterbi_cpu_end - viterbi_cpu_start)
 
             f_scores.append(ll_forward)
             v_scores.append(ll_viterbi)
@@ -395,6 +405,10 @@ def evaluate_end_to_end_pipeline(data_items, phone_hmms, isolated_map):
         'viterbi_mismatches': viterbi_mismatches,
         'forward_scores_all': forward_scores_all,
         'viterbi_scores_all': viterbi_scores_all,
+        'forward_cpu_time_total_s': forward_cpu_time_total,
+        'forward_cpu_time_per_utt_s': forward_cpu_time_total / n_total,
+        'viterbi_cpu_time_total_s': viterbi_cpu_time_total,
+        'viterbi_cpu_time_per_utt_s': viterbi_cpu_time_total / n_total,
     }
 
 
@@ -413,6 +427,22 @@ print(
 )
 print("onespkr forward mistakes:", len(pipeline_result_onespkr['forward_mismatches']))
 print("onespkr viterbi mistakes:", len(pipeline_result_onespkr['viterbi_mismatches']))
+print(
+    "onespkr forward cpu time (total s):",
+    f"{pipeline_result_onespkr['forward_cpu_time_total_s']:.6f}"
+)
+print(
+    "onespkr forward cpu time (per utterance s):",
+    f"{pipeline_result_onespkr['forward_cpu_time_per_utt_s']:.6f}"
+)
+print(
+    "onespkr viterbi cpu time (total s):",
+    f"{pipeline_result_onespkr['viterbi_cpu_time_total_s']:.6f}"
+)
+print(
+    "onespkr viterbi cpu time (per utterance s):",
+    f"{pipeline_result_onespkr['viterbi_cpu_time_per_utt_s']:.6f}"
+)
 print(
     "forward scores finite:",
     np.all(np.isfinite(pipeline_result_onespkr['forward_scores_all']))
@@ -444,6 +474,22 @@ print(
 )
 print("all-speakers forward mistakes:", len(pipeline_result_allspk['forward_mismatches']))
 print("all-speakers viterbi mistakes:", len(pipeline_result_allspk['viterbi_mismatches']))
+print(
+    "all-speakers forward cpu time (total s):",
+    f"{pipeline_result_allspk['forward_cpu_time_total_s']:.6f}"
+)
+print(
+    "all-speakers forward cpu time (per utterance s):",
+    f"{pipeline_result_allspk['forward_cpu_time_per_utt_s']:.6f}"
+)
+print(
+    "all-speakers viterbi cpu time (total s):",
+    f"{pipeline_result_allspk['viterbi_cpu_time_total_s']:.6f}"
+)
+print(
+    "all-speakers viterbi cpu time (per utterance s):",
+    f"{pipeline_result_allspk['viterbi_cpu_time_per_utt_s']:.6f}"
+)
 
 
 # Sanity checks for full pipeline integrity.
