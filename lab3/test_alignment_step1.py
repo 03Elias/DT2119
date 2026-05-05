@@ -1,13 +1,16 @@
 import numpy as np
 
 from lab3_proto import forcedAlignment
+from lab3_proto import words2phones
+from prondict import prondict
+from lab3_tools import frames2trans
 
-example = np.load('lab3/lab3_example.npz', allow_pickle=True)['example'].item()
+example = np.load('lab3_example.npz', allow_pickle=True)['example'].item()
 
 lmfcc = example['lmfcc']
 phoneTrans = example['phoneTrans']
 
-phoneHMMs = np.load('lab3/lab2_models_all.npz', allow_pickle=True)['phoneHMMs'].item()
+phoneHMMs = np.load('lab2_models_all.npz', allow_pickle=True)['phoneHMMs'].item()
 
 alignment = forcedAlignment(lmfcc, phoneHMMs, phoneTrans)
 
@@ -29,3 +32,13 @@ for i in diffs[:10]:
     print(i, "ours:", alignment[i], "gold:", gold[i])
     
     
+    
+#test words2phones
+wordTrans = ['z', '4', '3']
+phoneTrans_test = words2phones(wordTrans, prondict)
+
+print(phoneTrans_test)
+
+
+frames2trans(alignment, outfilename='z43a.lab')
+print("saved z43a.lab")
