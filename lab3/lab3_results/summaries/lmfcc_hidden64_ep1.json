@@ -1,0 +1,20 @@
+{
+  "feature_type": "lmfcc",
+  "hidden_layers": [
+    64
+  ],
+  "hidden_size": 64,
+  "epochs": 1,
+  "train_accuracy": 0.4800621596938235,
+  "validation_accuracy": 0.5351478823551846,
+  "test_accuracy": 0.5251582500225931,
+  "train_loss": 1.861363797173056,
+  "validation_loss": 1.5721258117129646,
+  "test_loss": 1.6086171598411916,
+  "state_accuracy": 0.5251582500225931,
+  "phoneme_accuracy": 0.6341192680617205,
+  "state_per": 1.0857823598700727,
+  "phoneme_per": 1.9331211163529214,
+  "model_path": "C:\\Users\\Elias\\DT2119\\lab3\\lab3_results\\models\\lmfcc_hidden64_ep1.pt",
+  "posterior_plot_path": "C:\\Users\\Elias\\DT2119\\lab3\\lab3_results\\plots\\lmfcc_posterior.png"
+}

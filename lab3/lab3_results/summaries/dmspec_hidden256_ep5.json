@@ -1,0 +1,20 @@
+{
+  "feature_type": "dmspec",
+  "hidden_layers": [
+    256
+  ],
+  "hidden_size": 256,
+  "epochs": 5,
+  "train_accuracy": 0.7432135050675113,
+  "validation_accuracy": 0.7191093369607363,
+  "test_accuracy": 0.7112194125266696,
+  "train_loss": 0.8263783462328431,
+  "validation_loss": 0.9057347274609502,
+  "test_loss": 0.9399520990636377,
+  "state_accuracy": 0.7112194125266696,
+  "phoneme_accuracy": 0.8062336036211849,
+  "state_per": 0.5151641343533975,
+  "phoneme_per": 0.8337150185499015,
+  "model_path": "C:\\Users\\Elias\\DT2119\\lab3\\lab3_results\\models\\dmspec_hidden256_ep5.pt",
+  "posterior_plot_path": "C:\\Users\\Elias\\DT2119\\lab3\\lab3_results\\plots\\dmspec_posterior.png"
+}
