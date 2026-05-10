@@ -53,7 +53,7 @@ def forcedAlignment(lmfcc, phoneHMMs, phoneTrans):
        list of strings in the form phoneme_index specifying, for each time step
        the state from phoneHMMs corresponding to the viterbi path.
     """
-def forcedAlignment(lmfcc, phoneHMMs, phoneTrans):
+
     """Aligns a phonetic transcription at the state level."""
 
     # 1. Build one big HMM for the whole utterance
