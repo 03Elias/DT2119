@@ -12,7 +12,7 @@ test-time audio transform object, that transforms waveform -> spectrogram, witho
 test_audio_transform = ...
 
 # Functions to be implemented ----------------------------------
-
+#Elmira
 def intToStr(labels):
     '''
         convert list of integers to string
@@ -21,7 +21,7 @@ def intToStr(labels):
     Returns:
         string with space-separated characters
     '''
-
+#Elias
 def strToInt(text):
     '''
         convert string to list of integers
@@ -30,7 +30,7 @@ def strToInt(text):
     Returns:
         list of ints
     '''
-
+#Elmira
 def dataProcessing(data, transform):
     '''
     process a batch of speech data
@@ -48,7 +48,7 @@ def dataProcessing(data, transform):
         -   input_lengths - list of half spectrogram lengths before padding
         -   label_lengths - list of label lengths before padding
     '''
-    
+#Elias 
 def greedyDecoder(output, blank_label=28):
     '''
     decode a batch of utterances 
@@ -58,7 +58,7 @@ def greedyDecoder(output, blank_label=28):
     returns:
         list of decoded strings
     '''
-
+#Elimra
 def levenshteinDistance(ref,hyp):
     '''
     calculate levenshtein distance (edit distance) between two sequences
