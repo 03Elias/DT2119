@@ -1,15 +1,28 @@
 
 # DT2119, Lab 4 End-to-end Speech Recognition
+import torch
+from torch import nn
+import torchaudio
 
 # Variables to be defined --------------------------------------
 ''' 
 train-time audio transform object, that transforms waveform -> spectrogram, with augmentation
 ''' 
-train_audio_transform = ...
+train_audio_transform = nn.Sequential(
+    torchaudio.transforms.MelSpectrogram(
+        sample_rate=16000,
+        n_mels=80
+    ),
+    torchaudio.transforms.FrequencyMasking(freq_mask_param=15),
+    torchaudio.transforms.TimeMasking(time_mask_param=35)
+)
 '''
 test-time audio transform object, that transforms waveform -> spectrogram, without augmentation 
 '''
-test_audio_transform = ...
+test_audio_transform = torchaudio.transforms.MelSpectrogram(
+    sample_rate=16000,
+    n_mels=80
+)
 
 # Functions to be implemented ----------------------------------
 #Elmira
@@ -69,6 +82,7 @@ def strToInt(text):
     Returns:
         list of ints
     '''
+      
 #Elmira
 def dataProcessing(data, transform):
     '''
@@ -87,6 +101,55 @@ def dataProcessing(data, transform):
         -   input_lengths - list of half spectrogram lengths before padding
         -   label_lengths - list of label lengths before padding
     '''
+    # empty lists for one batch
+    spectrograms = []
+    labels = []
+    input_lengths = []
+    label_lengths = []
+
+    # loop over all samples in the batch
+    for waveform, sample_rate, utterance, speaker_id, chapter_id, utterance_id in data:
+
+        # 1. Convert waveform to mel-spectrogram
+        spec = transform(waveform)
+
+        # 2. Change shape:
+        # from (channel, mel, time)
+        # to   (time, mel)
+        spec = spec.squeeze(0).transpose(0, 1)
+
+        # 3. Save spectrogram
+        spectrograms.append(spec)
+
+        # 4. Convert text to integer labels
+        label = torch.tensor(strToInt(utterance.lower()), dtype=torch.long)
+        labels.append(label)
+
+        # 5. Save lengths before padding
+        input_lengths.append(spec.shape[0] // 2)
+        label_lengths.append(len(label))
+
+    # 6. Pad spectrograms to same length
+    spectrograms = nn.utils.rnn.pad_sequence(
+        spectrograms,
+        batch_first=True
+    )
+
+    # 7. Pad labels to same length
+    labels = nn.utils.rnn.pad_sequence(
+        labels,
+        batch_first=True
+    )
+
+    # 8. Change shape:
+    # from (batch, time, mel)
+    # to   (batch, channel, mel, time)
+    spectrograms = spectrograms.unsqueeze(1).transpose(2, 3)
+
+    return spectrograms, labels, input_lengths, label_lengths
+   
+    
+    
 #Elias 
 def greedyDecoder(output, blank_label=28):
     '''
@@ -97,7 +160,7 @@ def greedyDecoder(output, blank_label=28):
     returns:
         list of decoded strings
     '''
-#Elimra
+#Elmira
 def levenshteinDistance(ref,hyp):
     '''
     calculate levenshtein distance (edit distance) between two sequences
@@ -145,11 +208,3 @@ def levenshteinDistance(ref,hyp):
     # final distance
     return matrix[len(ref)][len(hyp)]
 
-# test cases for intToStr
-#print(intToStr([9, 6, 13, 13, 16]))
-#print(intToStr([9, 10, 1, 6, 13, 14, 10, 19, 2]))
-
-# test cases for levenshteinDistance
-print(levenshteinDistance("hello", "helo"))
-print(levenshteinDistance("cat", "cut"))
-print(levenshteinDistance("kitten", "sitting"))
