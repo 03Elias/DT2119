@@ -82,6 +82,43 @@ def strToInt(text):
     Returns:
         list of ints
     '''
+    char_to_int = {
+        "'": 0,
+        " ": 1,
+        "a": 2,
+        "b": 3,
+        "c": 4,
+        "d": 5,
+        "e": 6,
+        "f": 7,
+        "g": 8,
+        "h": 9,
+        "i": 10,
+        "j": 11,
+        "k": 12,
+        "l": 13,
+        "m": 14,
+        "n": 15,
+        "o": 16,
+        "p": 17,
+        "q": 18,
+        "r": 19,
+        "s": 20,
+        "t": 21,
+        "u": 22,
+        "v": 23,
+        "w": 24,
+        "x": 25,
+        "y": 26,
+        "z": 27,
+    }
+
+    labels = []
+    for char in text.lower():
+        if char in char_to_int:
+            labels.append(char_to_int[char])
+
+    return labels
       
 #Elmira
 def dataProcessing(data, transform):
@@ -160,6 +197,21 @@ def greedyDecoder(output, blank_label=28):
     returns:
         list of decoded strings
     '''
+    # Pick the most probable label at each time step.
+    arg_maxes = torch.argmax(output, dim=2)
+    decodes = []
+
+    for batch_idx in range(arg_maxes.size(0)):
+        decode = []
+        prev = None
+        for idx in arg_maxes[batch_idx]:
+            idx = int(idx.item())
+            if idx != blank_label and idx != prev:
+                decode.append(idx)
+            prev = idx
+        decodes.append(intToStr(decode))
+
+    return decodes
 #Elmira
 def levenshteinDistance(ref,hyp):
     '''
