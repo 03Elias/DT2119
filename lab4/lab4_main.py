@@ -9,6 +9,8 @@ import torch.optim as optim
 import numpy as np
 import argparse
 
+from lab4_proto import *
+
 '''
 HYPERPARAMETERS
 '''
