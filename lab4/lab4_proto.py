@@ -3,6 +3,7 @@
 import torch
 from torch import nn
 import torchaudio
+from pyctcdecode import build_ctcdecoder
 
 # Variables to be defined --------------------------------------
 ''' 
@@ -259,4 +260,58 @@ def levenshteinDistance(ref,hyp):
 
     # final distance
     return matrix[len(ref)][len(hyp)]
+
+
+# Language Model Decoding Functions --------------------------------
+def getLabelsForLM():
+    '''
+    Get the CTC labels in order for the language model decoder.
+    Returns a list where the last element is the blank label ('').
+    '''
+    labels = [
+        "'",  # 0
+        " ",  # 1
+        "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",  # 2-14
+        "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",  # 15-27
+        ""  # 28 - blank label
+    ]
+    return labels
+
+
+def buildLanguageModelDecoder(lm_path, alpha=0.5, beta=1.0):
+    '''
+    Build a CTC decoder with language model using pyctcdecode.
+    arguments:
+        lm_path: path to the ARPA language model file
+        alpha: weight of the language model (0 <= alpha <= 1)
+        beta: word insertion bonus (0 <= beta <= 1)
+    returns:
+        a pyctcdecode decoder object
+    '''
+    labels = getLabelsForLM()
+    decoder = build_ctcdecoder(
+        labels,
+        kenlm_model_path=lm_path,
+        alpha=alpha,
+        beta=beta
+    )
+    return decoder
+
+
+def languageModelDecoder(output, decoder):
+    '''
+    Decode a batch of utterances using language model decoder.
+    arguments:
+        output: network output tensor, shape B x T x C where B=batch_size, T=time_steps, C=characters
+        decoder: pyctcdecode decoder object
+    returns:
+        list of decoded strings
+    '''
+    decodes = []
+    for batch_idx in range(output.size(0)):
+        # Convert to numpy and decode
+        output_numpy = output[batch_idx].cpu().detach().numpy()
+        decoded_text = decoder.decode(output_numpy)
+        decodes.append(decoded_text)
+    return decodes
 

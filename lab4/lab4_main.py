@@ -189,7 +189,7 @@ def train(model, device, train_loader, criterion, optimizer, epoch):
 				epoch, batch_idx * len(spectrograms), data_len,
 				100. * batch_idx / len(train_loader), loss.item()))
 
-def test(model, device, test_loader, criterion, epoch):
+def test(model, device, test_loader, criterion, epoch, use_lm=False, lm_decoder=None):
 	print('\nevaluating…')
 	model.eval()
 	test_loss = 0
@@ -211,7 +211,10 @@ def test(model, device, test_loader, criterion, epoch):
 				decoded_targets.append(intToStr(labels[i][:label_lengths[i]].tolist()))
 
 			# get predicted text
-			decoded_preds = greedyDecoder(output)
+			if use_lm:
+				decoded_preds = languageModelDecoder(output, lm_decoder)
+			else:
+				decoded_preds = greedyDecoder(output)
 
 			# calculate accuracy
 			for j in range(len(decoded_preds)):
@@ -221,14 +224,19 @@ def test(model, device, test_loader, criterion, epoch):
 	avg_cer = sum(test_cer)/len(test_cer)
 	avg_wer = sum(test_wer)/len(test_wer)
 	print('Test set: Average loss: {:.4f}, Average CER: {:4f} Average WER: {:.4f}\n'.format(test_loss, avg_cer, avg_wer))
+	return avg_cer, avg_wer
 
 '''
 MAIN PROGRAM
 '''
 if __name__ == '__main__':
 	argparser = argparse.ArgumentParser()
-	argparser.add_argument('--mode', help='train, test or recognize')
+	argparser.add_argument('--mode', help='train, test, recognize, or tune')
 	argparser.add_argument('--model', type=str, help='model to load', default='')
+	argparser.add_argument('--use_lm', action='store_true', help='use language model decoding')
+	argparser.add_argument('--lm_path', type=str, default='wiki-interpolate.3gram.arpa', help='path to language model')
+	argparser.add_argument('--alpha', type=float, default=0.5, help='LM weight (0-1)')
+	argparser.add_argument('--beta', type=float, default=1.0, help='word insertion bonus (0-1)')
 	argparser.add_argument('wavfiles', nargs='*',help='wavfiles to recognize')
 
 	args = argparser.parse_args()
@@ -278,17 +286,52 @@ if __name__ == '__main__':
 	
 	print(args.mode)
 
+
+
 	if args.model != '':
-		model.load_state_dict(torch.load(args.model))
+		model.load_state_dict(torch.load(args.model, map_location=device))
+
+	# Initialize language model decoder if requested
+	lm_decoder = None
+	if args.use_lm:
+		print(f'Building language model decoder with alpha={args.alpha}, beta={args.beta}')
+		lm_decoder = buildLanguageModelDecoder(args.lm_path, args.alpha, args.beta)
 
 	if args.mode == 'train':
 		for epoch in range(hparams['epochs']):
 			train(model, device, train_loader, criterion, optimizer, epoch)
-			test(model, device, val_loader, criterion, epoch)
+			test(model, device, val_loader, criterion, epoch, use_lm=args.use_lm, lm_decoder=lm_decoder)
 			torch.save(model.state_dict(),'checkpoints/epoch-{}.pt'.format(epoch))
 
 	elif args.mode == 'test':
-		test(model, device, test_loader, criterion, -1)
+		test(model, device, test_loader, criterion, -1, use_lm=args.use_lm, lm_decoder=lm_decoder)
+
+	elif args.mode == 'tune':
+		print('Tuning alpha and beta on validation set...')
+		alpha_values = [0.0, 0.25, 0.5, 0.75, 1.0]
+		beta_values = [0.0, 0.25, 0.5, 0.75, 1.0]
+		
+		best_wer = float('inf')
+		best_alpha = 0.5
+		best_beta = 1.0
+		
+		print('Alpha\tBeta\tCER\tWER')
+		print('-' * 50)
+		
+		for alpha in alpha_values:
+			for beta in beta_values:
+				decoder = buildLanguageModelDecoder(args.lm_path, alpha, beta)
+				avg_cer, avg_wer = test(model, device, val_loader, criterion, -1, use_lm=True, lm_decoder=decoder)
+				print(f'{alpha:.2f}\t{beta:.2f}\t{avg_cer:.4f}\t{avg_wer:.4f}')
+				
+				if avg_wer < best_wer:
+					best_wer = avg_wer
+					best_alpha = alpha
+					best_beta = beta
+		
+		print('-' * 50)
+		print(f'Best: alpha={best_alpha:.2f}, beta={best_beta:.2f}, CER=?, WER={best_wer:.4f}')
+		print(f'Use these parameters: --alpha {best_alpha} --beta {best_beta}')
 
 	elif args.mode == 'recognize':
 		for wavfile in args.wavfiles:
@@ -296,6 +339,9 @@ if __name__ == '__main__':
 			spectrogram = test_audio_transform(waveform)
 			input = torch.unsqueeze(spectrogram,dim=0).to(device)
 			output = model(input)
-			text = greedyDecoder(output)
+			if args.use_lm:
+				text = languageModelDecoder(output, lm_decoder)
+			else:
+				text = greedyDecoder(output)
 			print('wavfile:',wavfile)
 			print('text:',text)
